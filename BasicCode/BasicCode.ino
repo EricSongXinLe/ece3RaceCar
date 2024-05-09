@@ -16,7 +16,7 @@ int hisError = 0;
 int sumError = 0;
 int processedValue[8];
 const float Kp = 0.115;
-const float Ki = 0.05;
+const float Ki = 0.003;
 const float Kd = 0.48;
 
 const int left_nslp_pin=31; // nslp ==> awake & ready for PWM
@@ -127,12 +127,12 @@ void loop() {
     error = 0;
   }
   if(error < 0){
-    leftSpd -= Kp*error;
-    rightSpd += Kp*error; 
+    leftSpd -= Kp*error+Ki*sumError;
+    rightSpd += Kp*error+Ki*sumError; 
     // error is negative. - means add and + means -
   }else{
-    rightSpd += Kp*error;
-    leftSpd -= Kp*error;
+    rightSpd += Kp*error+Ki*sumError;
+    leftSpd -= Kp*error+Ki*sumError;
   }
   
   
@@ -150,6 +150,7 @@ void loop() {
   }
     
   hisError = Neterror;
+  sumError += error;
 
   analogWrite(left_pwm_pin,leftSpd);
   analogWrite(right_pwm_pin,rightSpd);
