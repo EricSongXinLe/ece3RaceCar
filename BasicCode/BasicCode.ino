@@ -16,11 +16,13 @@ int hisError = 0;
 int sumError = 0;
 int processedValue[8];
 
-const int turn_around_thres = 8000;
+const int turn_around_thres = 390;
 
-const float Kp = 0.115;
-const float Ki = 0.003;
-const float Kd = 0.48;
+bool turned = false;
+int timeCnt = 0;
+float Kp = 0.215;
+const float Ki = 0.0005;
+float Kd = 0.75;
 
 const int left_nslp_pin=31; // nslp ==> awake & ready for PWM
 const int left_dir_pin=29;
@@ -76,6 +78,7 @@ void turn_around(void){
   analogWrite(right_pwm_pin,0);
   delay(300);
   analogWrite(left_pwm_pin,35);
+  digitalWrite(left_dir_pin,LOW);
   digitalWrite(right_dir_pin,HIGH);
   analogWrite(right_pwm_pin,35);
   while(!finishedTurn){
@@ -84,6 +87,7 @@ void turn_around(void){
     }
   }
   digitalWrite(right_dir_pin,LOW);
+  digitalWrite(left_dir_pin,LOW);
   resetEncoderCount_left();
   resetEncoderCount_right();
   analogWrite(right_pwm_pin,35);
@@ -127,20 +131,54 @@ bool finishLine(uint16_t input[],short length){
       count += 1;
     }
   }
-  if(count >= 6){
+  if(count >= 7){
     return true;
   }else{
     return false;
   }
 }
 
+void setSpd(int left, int right){
+  if(left<0){
+    digitalWrite(left_dir_pin,HIGH);
+    left *= 1.4;
+  }else{
+    digitalWrite(left_dir_pin,LOW);
+  }
+
+  if(right<0){
+    digitalWrite(right_dir_pin,HIGH);
+    right *= 1.4;
+  }else{
+    digitalWrite(right_dir_pin,LOW);
+  }
+  analogWrite(left_pwm_pin,abs(left));
+  analogWrite(right_pwm_pin,abs(right));
+}
+
 void loop() {
+  timeCnt++;
   // put your main code here, to run repeatedly: 
-  int leftSpd = 50;
-  int rightSpd = 50;
+  int leftSpd = 30;
+  int rightSpd = 30;
 //  ECE3_read_IR(sensorValues);
-
-
+  Kp = 0.215;
+  Kd = 0.75;
+  if(timeCnt>1250 && timeCnt < 1400){
+    Kp = 0.11;
+    Kd = 0.5;
+  }
+  if(timeCnt>3220 && timeCnt < 3350){
+    Kp = 0.11;
+    Kd = 0.5;
+  }
+  if(timeCnt == 1400 || timeCnt ==3350){
+    digitalWrite(left_dir_pin,LOW);
+    digitalWrite(right_dir_pin,LOW);
+    analogWrite(left_pwm_pin,40);
+      analogWrite(right_pwm_pin,40);
+      delay(4700);
+  }
 // 
   
   ECE3_read_IR(sensorValues);
@@ -148,7 +186,15 @@ void loop() {
   uint16_t min = minVal(sensorValues,8);
   if(meetblack&&finishLine(sensorValues,8)){
     // turn 180 around
+    if(turned){
+      leftSpd = 0;
+      rightSpd = 0;
+      analogWrite(left_pwm_pin,leftSpd);
+      analogWrite(right_pwm_pin,rightSpd);
+      delay(10000);
+    }
     turn_around();
+    turned = true;
     meetblack = false;
     return;
   }else if(finishLine(sensorValues,8)){
@@ -211,9 +257,17 @@ void loop() {
     
   hisError = Neterror;
   sumError += error;
-
+  if(leftSpd < 0 || rightSpd < 0){
+    digitalWrite(LED_RF, HIGH);
+  }
+  else{
+    digitalWrite(LED_RF, LOW);
+  }
+  setSpd(leftSpd,rightSpd);
+  /*
   analogWrite(left_pwm_pin,leftSpd);
   analogWrite(right_pwm_pin,rightSpd);
+  */
   
       // print the sensor values as numbers from 0 to 2500, where 0 means maximum reflectance and
       // 2500 means minimum reflectance
