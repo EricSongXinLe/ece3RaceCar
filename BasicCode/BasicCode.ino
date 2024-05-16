@@ -15,6 +15,9 @@ const int weight[8] = {-15,-14,-12,-8,8,12,14,15};
 int hisError = 0;
 int sumError = 0;
 int processedValue[8];
+
+const int turn_around_thres = 8000;
+
 const float Kp = 0.115;
 const float Ki = 0.003;
 const float Kd = 0.48;
@@ -52,8 +55,39 @@ void setup() {
 
 // set the data rate in bits/second for serial data transmission
   Serial.begin(9600); 
+  resetEncoderCount_left();
+  resetEncoderCount_right();
   delay(1000); //Wait 1 second before starting 
   
+}
+
+int getEncoderVal(void){
+  int L = getEncoderCount_left();
+  int R = getEncoderCount_right();
+  return (L+R)/2;
+}
+
+void turn_around(void){
+  bool finishedTurn = false;
+  resetEncoderCount_left();
+  resetEncoderCount_right();
+  analogWrite(left_pwm_pin,0);
+  analogWrite(right_pwm_pin,0);
+  delay(300);
+  analogWrite(left_pwm_pin,35);
+  digitalWrite(right_dir_pin,HIGH);
+  analogWrite(right_pwm_pin,35);
+  while(!finishedTurn){
+    if(getEncoderCount_left() > turn_around_thres){
+      finishedTurn = true;
+    }
+  }
+  digitalWrite(right_dir_pin,LOW);
+  resetEncoderCount_left();
+  resetEncoderCount_right();
+  analogWrite(right_pwm_pin,35);
+  analogWrite(left_pwm_pin,35);
+  return;
 }
 
 int abs(int input){
@@ -86,8 +120,8 @@ uint16_t maxVal(uint16_t input[],short length){
 
 void loop() {
   // put your main code here, to run repeatedly: 
-  int leftSpd = 70;
-  int rightSpd = 70;
+  int leftSpd = 50;
+  int rightSpd = 50;
 //  ECE3_read_IR(sensorValues);
 
 
