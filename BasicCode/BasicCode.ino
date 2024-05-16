@@ -32,7 +32,7 @@ const int right_pwm_pin=39;
 
 const int LED_RF = 41;
 
-const bool meetblack = false;
+bool meetblack = false;
 ///////////////////////////////////
 void setup() {
 // put your setup code here, to run once:
@@ -148,9 +148,9 @@ void loop() {
   uint16_t min = minVal(sensorValues,8);
   if(meetblack&&finishLine(sensorValues,8)){
     // turn 180 around
-
+    turn_around();
     meetblack = false;
-    continue;
+    return;
   }else if(finishLine(sensorValues,8)){
     meetblack = true;
   }else{
