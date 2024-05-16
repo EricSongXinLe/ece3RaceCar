@@ -29,6 +29,7 @@ const int right_pwm_pin=39;
 
 const int LED_RF = 41;
 
+const bool meetblack = false;
 ///////////////////////////////////
 void setup() {
 // put your setup code here, to run once:
@@ -84,6 +85,21 @@ uint16_t maxVal(uint16_t input[],short length){
   return currMax;
 }
 
+bool finishLine(uint16_t input[],short length){
+  char count = 0;
+  for(unsigned char i =0; i<length;i++){
+    if(input[i] > 1800) {
+      //1800 may need to change 
+      count += 1;
+    }
+  }
+  if(count >= 6){
+    return true;
+  }else{
+    return false;
+  }
+}
+
 void loop() {
   // put your main code here, to run repeatedly: 
   int leftSpd = 70;
@@ -94,8 +110,18 @@ void loop() {
 // 
   
   ECE3_read_IR(sensorValues);
+
   uint16_t min = minVal(sensorValues,8);
-  
+  if(meetblack&&finishLine(sensorValues,8)){
+    // turn 180 around
+
+    meetblack = false;
+    continue;
+  }else if(finishLine(sensorValues,8)){
+    meetblack = true;
+  }else{
+    meetblack = false;
+  }
   //Serial.println(min);
 
   for(unsigned char i = 0; i < 8; i++){
