@@ -141,17 +141,19 @@ bool finishLine(uint16_t input[],short length){
 void setSpd(int left, int right){
   if(left<0){
     digitalWrite(left_dir_pin,HIGH);
-    left *= 1.4;
+    left *= 1.5;
   }else{
     digitalWrite(left_dir_pin,LOW);
   }
 
   if(right<0){
     digitalWrite(right_dir_pin,HIGH);
-    right *= 1.4;
+    right *= 1.5;
   }else{
     digitalWrite(right_dir_pin,LOW);
   }
+  analogWrite(left_pwm_pin,0);
+  analogWrite(right_pwm_pin,abs(right));
   analogWrite(left_pwm_pin,abs(left));
   analogWrite(right_pwm_pin,abs(right));
 }
