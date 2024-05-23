@@ -11,7 +11,7 @@
 #include <ECE3.h>
 //uint16_t sensorValues[8]; // right -> left, 0 -> 7
 uint16_t sensorValues[8];
-const int weight[8] = {-15,-14,-12,-8,8,12,14,15};
+const int weight[8] = {0,-14,-12,-8,8,12,14,0};
 int hisError = 0;
 int sumError = 0;
 int processedValue[8];
@@ -166,6 +166,7 @@ void loop() {
 //  ECE3_read_IR(sensorValues);
   Kp = 0.215;
   Kd = 0.75;
+  /*
   if(timeCnt>1250 && timeCnt < 1400){
     Kp = 0.11;
     Kd = 0.5;
@@ -180,7 +181,7 @@ void loop() {
     analogWrite(left_pwm_pin,40);
       analogWrite(right_pwm_pin,40);
       delay(4700);
-  }
+  }*/
 // 
   
   ECE3_read_IR(sensorValues);
