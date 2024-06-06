@@ -11,7 +11,7 @@
 #include <ECE3.h>
 //uint16_t sensorValues[8]; // right -> left, 0 -> 7
 uint16_t sensorValues[8];
-const int weight[8] = {0,-14,-12,-8,8,12,14,0};
+int weight[8] = {0,-14,-12,-8,8,12,14,0};
 int hisError = 0;
 int sumError = 0;
 int processedValue[8];
@@ -60,7 +60,7 @@ void setup() {
   Serial.begin(9600); 
   resetEncoderCount_left();
   resetEncoderCount_right();
-  delay(1000); //Wait 1 second before starting 
+  delay(2000); //Wait 1 second before starting 
   
 }
 
@@ -76,11 +76,11 @@ void turn_around(void){
   resetEncoderCount_right();
   analogWrite(left_pwm_pin,0);
   analogWrite(right_pwm_pin,0);
-  delay(300);
-  analogWrite(left_pwm_pin,35);
+  delay(50);
+  analogWrite(left_pwm_pin,95);
   digitalWrite(left_dir_pin,LOW);
   digitalWrite(right_dir_pin,HIGH);
-  analogWrite(right_pwm_pin,35);
+  analogWrite(right_pwm_pin,95);
   while(!finishedTurn){
     if(getEncoderCount_left() > turn_around_thres){
       finishedTurn = true;
@@ -90,8 +90,8 @@ void turn_around(void){
   digitalWrite(left_dir_pin,LOW);
   resetEncoderCount_left();
   resetEncoderCount_right();
-  analogWrite(right_pwm_pin,35);
-  analogWrite(left_pwm_pin,35);
+  analogWrite(right_pwm_pin,55);
+  analogWrite(left_pwm_pin,55);
   return;
 }
 
@@ -161,20 +161,32 @@ void setSpd(int left, int right){
 void loop() {
   timeCnt++;
   // put your main code here, to run repeatedly: 
-  int leftSpd = 30;
-  int rightSpd = 30;
+  int leftSpd = 52;
+  int rightSpd = 52;
 //  ECE3_read_IR(sensorValues);
-  Kp = 0.215;
-  Kd = 0.75;
+  Kp = 0.252;
+  Kd = 1.11;
+  
+  if(timeCnt>650 && timeCnt < 825 ){
+    weight[0] = -14;
+    weight[7] = 14;
+    leftSpd = 65;
+    rightSpd = 65;
+    Kp = 0.23;
+    Kd = 1.2;
+    digitalWrite(LED_RF, HIGH);
+    //Kp = 0.11;
+    //Kd = 0.5;
+  }else{
+    weight[0] = 0;
+    weight[7] = 0;
+    digitalWrite(LED_RF, LOW);
+  }
+  //if(timeCnt>3220 && timeCnt < 3350){
+    //Kp = 0.11;
+    //Kd = 0.5;
+  //}
   /*
-  if(timeCnt>1250 && timeCnt < 1400){
-    Kp = 0.11;
-    Kd = 0.5;
-  }
-  if(timeCnt>3220 && timeCnt < 3350){
-    Kp = 0.11;
-    Kd = 0.5;
-  }
   if(timeCnt == 1400 || timeCnt ==3350){
     digitalWrite(left_dir_pin,LOW);
     digitalWrite(right_dir_pin,LOW);
@@ -260,12 +272,6 @@ void loop() {
     
   hisError = Neterror;
   sumError += error;
-  if(leftSpd < 0 || rightSpd < 0){
-    digitalWrite(LED_RF, HIGH);
-  }
-  else{
-    digitalWrite(LED_RF, LOW);
-  }
   setSpd(leftSpd,rightSpd);
   /*
   analogWrite(left_pwm_pin,leftSpd);
