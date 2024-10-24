@@ -224,9 +224,9 @@ void loop() {
   }
 
   uint16_t max = maxVal(sensorValues,8);
-
+  float recp = 1000.0/max;
   for(unsigned char i = 0; i < 8; i++){
-    sensorValues[i]=(sensorValues[i]*1000/max);
+    sensorValues[i]=(sensorValues[i]*recp);
   }
 
   for(unsigned char i = 0; i < 8; i++){
